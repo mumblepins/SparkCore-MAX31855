@@ -23,12 +23,14 @@ int thermoCS = A2;
 //int thermoDO = A4;
 
 // Initialize the Thermocouple
-Adafruit_MAX31855 thermocouple(thermoCS);
+AdafruitMAX31855 thermocouple(thermoCS);
 // initialize the library with the numbers of the interface pins
 LiquidCrystal lcd(D2, D3, D4, D5, D6, D7);
 
   
 void setup() {
+	//init thermocouple
+	thermocouple.init();
   // open serial terminal and press ENTER to start
   Serial.begin(9600);
   while(!Serial.available()) SPARK_WLAN_Loop();

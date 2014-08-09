@@ -26,16 +26,35 @@
 #define spiSend(b) SPI.transfer(b)
 #define spiRec() SPI.transfer(0XFF)
 
+Adafruit_MAX31855::Adafruit_MAX31855(int8_t sclk_pin, int8_t cs_pin, int8_t miso_pin) {
+    //software mode without calibration value
+    _sclk = sclk_pin;
+    _cs = cs_pin;
+    _miso = miso_pin;
+    _calibration = 0.0;
+    _spimode = 0;
+}
+
+Adafruit_MAX31855::Adafruit_MAX31855(int8_t sclk_pin, int8_t cs_pin, int8_t miso_pin, double calibration) {
+    //software mode with calibration value
+    _sclk = sclk_pin;
+    _cs = cs_pin;
+    _miso = miso_pin;
+    _calibration = calibration;
+    _spimode = 0;
+}
+
 AdafruitMAX31855::AdafruitMAX31855(int8_t cs_pin) {
+    //hardware mode without calibration value
     _cs = cs_pin;
     _calibration = 0.0;
-    
+    _spimode = 1;
 }
 
 AdafruitMAX31855::AdafruitMAX31855(int8_t cs_pin, double calibration) {
+    //hardware mode with calibration value
     _cs = cs_pin;
     _calibration = calibration;
-
 }
 
 inline void AdafruitMAX31855::chipSelectHigh(void) {
@@ -47,16 +66,21 @@ inline void AdafruitMAX31855::chipSelectLow(void) {
 }
 
 int AdafruitMAX31855::init(void) {
-	pinMode(_cs,OUTPUT);
-	SPI.setClockDivider(SPI_CLOCK_DIV8);
-    SPI.setDataMode(SPI_MODE0);
-    SPI.setBitOrder(MSBFIRST);
-    SPI.begin(_cs);
-    
+    if (_spimode) { //hardware mode
+        pinMode(_cs, OUTPUT);
+        SPI.setClockDivider(SPI_CLOCK_DIV8);
+        SPI.setDataMode(SPI_MODE0);
+        SPI.setBitOrder(MSBFIRST);
+        SPI.begin(_cs);
+    } else { //software mode
+        pinMode(_cs, OUTPUT);
+        pinMode(_sclk, OUTPUT);
+        pinMode(_miso, INPUT);
+    }
     // init chip..  not sure if this is necessary for MAX31855
-    chipSelectHigh();
-    for (uint8_t i = 0; i < 10; i++) spiSend(0XFF);
-    chipSelectLow();
+    //chipSelectHigh();
+    //for (uint8_t i = 0; i < 10; i++) spiSend(0XFF);
+    //chipSelectLow();
     chipSelectHigh();
 
     // now we need to do an initial value on the moving average. 
@@ -77,8 +101,8 @@ int AdafruitMAX31855::init(void) {
     v <<= 2; // add an extra two bits for more accuracy
     v += 8741; //convert to Kelvin
     _movingRawTemp = v;
-    return _movingRawTemp;
     chipSelectHigh();
+    return _movingRawTemp;
 }
 
 double AdafruitMAX31855::readInternal(void) {
@@ -159,13 +183,34 @@ double AdafruitMAX31855::readCalibration(void) {
 }
 
 uint32_t AdafruitMAX31855::spiread32(void) {
-   uint32_t d = 0;
+    uint32_t d = 0;
     int i;
-    chipSelectLow(); // select card
-    for (i = 0; i < 4; i++) { //transfer 4 bytes
-        d <<= 8;
-        d |= spiRec();
+    if (_spimode) { //hardware
+        chipSelectLow(); // select card
+        for (i = 0; i < 4; i++) { //transfer 4 bytes
+            d <<= 8;
+            d |= spiRec();
+        }
+        chipSelectHigh();
+    } else {  // bit-banging
+        digitalWrite(_sclk, LOW);
+        delayMicroseconds(10);
+        chipSelectLow();
+        delayMicroseconds(10);
+
+        for (i = 31; i >= 0; i--) {
+            digitalWrite(_sclk, LOW);
+            delayMicroseconds(10);
+            d <<= 1;
+            if (digitalRead(_miso)) {
+                d |= 1;
+            }
+
+            digitalWrite(_sclk, HIGH);
+            delayMicroseconds(10);
+        }
+
+        chipSelectHigh();
     }
-    chipSelectHigh();
     return d;
 }
