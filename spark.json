@@ -3,5 +3,5 @@
   "author": "Adafruit, Technobly, Mumblepins",
   "license": "BSD",
   "version": "0.0.3",
-  "description": "Adafruit MAX31885 Library ported to Spark Core. Switched to hardware SPI and added calibration."
+  "description": "Adafruit MAX31885 Library ported to Spark Core. Added hardware SPI mode and added calibration."
 }

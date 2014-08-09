@@ -77,10 +77,6 @@ int AdafruitMAX31855::init(void) {
         pinMode(_sclk, OUTPUT);
         pinMode(_miso, INPUT);
     }
-    // init chip..  not sure if this is necessary for MAX31855
-    //chipSelectHigh();
-    //for (uint8_t i = 0; i < 10; i++) spiSend(0XFF);
-    //chipSelectLow();
     chipSelectHigh();
 
     // now we need to do an initial value on the moving average. 
@@ -107,7 +103,6 @@ int AdafruitMAX31855::init(void) {
 
 double AdafruitMAX31855::readInternal(void) {
     uint32_t v;
-
     v = spiread32();
 
     // ignore bottom 4 bits - they're just thermocouple data

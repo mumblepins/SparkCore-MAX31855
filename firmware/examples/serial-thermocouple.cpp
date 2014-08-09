@@ -24,9 +24,28 @@ int thermoDO = A4;
 AdafruitMAX31855 thermocouple(thermoCS); //hardware mode
 //AdafruitMAX31855 thermocouple(thermoCLK,thermoCS,thermoDO);  //software mode
 
+// Calibration function
+int calibrateTherm(String command) {
+    // can either be called with "calTemp:XX" where xx is the current temp in Celsius
+    // or with no argument to calibrate to internal temp sensor
+    if (command.startsWith("calTemp:")) {
+        command = command.substring(command.indexOf(':') + 1);
+        int calSetTemp = command.toInt();
+        Serial.println(calSetTemp);
+        double thermoTemp = thermocouple.readCelsius(true);
+        thermocouple.calibrate((double)calSetTemp - thermoTemp);
+    } else {
+        thermocouple.calibrate();
+    }
+    return 1;
+}
+
 void setup() {
     //init thermocouple
     thermocouple.init();
+    
+    // publish calibration function
+    Spark.function("calibrate",calibrateTherm);
     // open serial terminal and press ENTER to start
     Serial.begin(9600);
     while (!Serial.available()) SPARK_WLAN_Loop();
