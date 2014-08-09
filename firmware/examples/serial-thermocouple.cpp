@@ -15,6 +15,7 @@
  ****************************************************/
 
 #include "math.h"
+
 #include "adafruit-max31855/adafruit-max31855.h"
 
 int thermoCLK = A3;
@@ -29,8 +30,8 @@ int calibrateTherm(String command) {
     // can either be called with "calTemp:XX" where xx is the current temp in Celsius
     // or with no argument to calibrate to internal temp sensor
     if (command.startsWith("calTemp:")) {
-        command = command.substring(command.indexOf(':') + 1);
-        int calSetTemp = command.toInt();
+        String tempString = command.substring(command.indexOf(':') + 1);
+        int calSetTemp = tempString.toInt();
         Serial.println(calSetTemp);
         double thermoTemp = thermocouple.readCelsius(true);
         thermocouple.calibrate((double)calSetTemp - thermoTemp);
