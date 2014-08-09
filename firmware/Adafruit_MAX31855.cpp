@@ -29,7 +29,6 @@
 Adafruit_MAX31855::Adafruit_MAX31855(int8_t cs_pin) {
     _cs = cs_pin;
     _calibration = 0.0;
-    _spimode = 1;
     SPI.setClockDivider(SPI_CLOCK_DIV8);
     SPI.setDataMode(SPI_MODE0);
     SPI.setBitOrder(MSBFIRST);
@@ -39,7 +38,6 @@ Adafruit_MAX31855::Adafruit_MAX31855(int8_t cs_pin) {
 Adafruit_MAX31855::Adafruit_MAX31855(int8_t cs_pin, double calibration) {
     _cs = cs_pin;
     _calibration = calibration;
-    _spimode = 1;
     SPI.begin(_cs);
 }
 

@@ -28,7 +28,7 @@ class Adafruit_MAX31855 {
 public:
     Adafruit_MAX31855(int8_t cs_pin, double calibration);
     Adafruit_MAX31855(int8_t cs_pin);
-
+    int init(void);
     double readInternal(void);
     double readCelsius(bool raw = false);
     double readFarenheit(void);
