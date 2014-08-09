@@ -29,16 +29,13 @@
 AdafruitMAX31855::AdafruitMAX31855(int8_t cs_pin) {
     _cs = cs_pin;
     _calibration = 0.0;
-    SPI.setClockDivider(SPI_CLOCK_DIV8);
-    SPI.setDataMode(SPI_MODE0);
-    SPI.setBitOrder(MSBFIRST);
-    SPI.begin(_cs);
+    
 }
 
 AdafruitMAX31855::AdafruitMAX31855(int8_t cs_pin, double calibration) {
     _cs = cs_pin;
     _calibration = calibration;
-    SPI.begin(_cs);
+
 }
 
 inline void AdafruitMAX31855::chipSelectHigh(void) {
@@ -50,6 +47,12 @@ inline void AdafruitMAX31855::chipSelectLow(void) {
 }
 
 int AdafruitMAX31855::init(void) {
+	pinMode(_cs,OUTPUT);
+	SPI.setClockDivider(SPI_CLOCK_DIV8);
+    SPI.setDataMode(SPI_MODE0);
+    SPI.setBitOrder(MSBFIRST);
+    SPI.begin(_cs);
+    
     // init chip..  not sure if this is necessary for MAX31855
     chipSelectHigh();
     for (uint8_t i = 0; i < 10; i++) spiSend(0XFF);

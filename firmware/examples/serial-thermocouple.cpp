@@ -24,6 +24,7 @@ int thermoCS = A2;
 AdafruitMAX31855 thermocouple(thermoCS);
   
 void setup() {
+	thermocouple.init();
   // open serial terminal and press ENTER to start
   Serial.begin(9600);
   while(!Serial.available()) SPARK_WLAN_Loop();
