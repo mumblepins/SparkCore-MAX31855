@@ -21,13 +21,14 @@
  *  Mumblepins copied heavily from Technobly's SD card library,
  *  so most credit goes to him :-)
  **************************************************/
-
+#ifndef ADAFRUIT_MAX31855
+#define ADAFRUIT_MAX31855
 #include "application.h"
 
 class AdafruitMAX31855 {
 public:
-    Adafruit_MAX31855(int8_t sclk_pin, int8_t cs_pin, int8_t miso_pin);
-    Adafruit_MAX31855(int8_t sclk_pin, int8_t cs_pin, int8_t miso_pin, double calibration);
+    AdafruitMAX31855(int8_t sclk_pin, int8_t cs_pin, int8_t miso_pin);
+    AdafruitMAX31855(int8_t sclk_pin, int8_t cs_pin, int8_t miso_pin, double calibration);
     AdafruitMAX31855(int8_t cs_pin, double calibration);
     AdafruitMAX31855(int8_t cs_pin);
 
@@ -49,3 +50,4 @@ private:
     void chipSelectHigh(void);
     void chipSelectLow(void);
 };
+#endif

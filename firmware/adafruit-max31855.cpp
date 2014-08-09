@@ -26,7 +26,7 @@
 #define spiSend(b) SPI.transfer(b)
 #define spiRec() SPI.transfer(0XFF)
 
-Adafruit_MAX31855::Adafruit_MAX31855(int8_t sclk_pin, int8_t cs_pin, int8_t miso_pin) {
+AdafruitMAX31855::AdafruitMAX31855(int8_t sclk_pin, int8_t cs_pin, int8_t miso_pin) {
     //software mode without calibration value
     _sclk = sclk_pin;
     _cs = cs_pin;
@@ -35,7 +35,7 @@ Adafruit_MAX31855::Adafruit_MAX31855(int8_t sclk_pin, int8_t cs_pin, int8_t miso
     _spimode = 0;
 }
 
-Adafruit_MAX31855::Adafruit_MAX31855(int8_t sclk_pin, int8_t cs_pin, int8_t miso_pin, double calibration) {
+AdafruitMAX31855::AdafruitMAX31855(int8_t sclk_pin, int8_t cs_pin, int8_t miso_pin, double calibration) {
     //software mode with calibration value
     _sclk = sclk_pin;
     _cs = cs_pin;
