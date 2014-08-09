@@ -14,7 +14,7 @@ CSRC +=
 
 # C++ source files included in this build.
 CPPSRC += $(TARGET_SRC_PATH)/application.cpp
-CPPSRC += $(TARGET_SRC_PATH)/Adafruit_MAX31855.cpp
+CPPSRC += $(TARGET_SRC_PATH)/adafruit-max31855.cpp
 CPPSRC += $(TARGET_SRC_PATH)/main.cpp
 CPPSRC += $(TARGET_SRC_PATH)/newlib_stubs.cpp
 CPPSRC += $(TARGET_SRC_PATH)/spark_utilities.cpp

@@ -15,15 +15,16 @@
  ****************************************************/
 
 #include "math.h"
-#include "Adafruit_MAX31855/Adafruit_MAX31855.h"
+#include "adafruit-max31855/adafruit-max31855.h"
 #include "LiquidCrystal/LiquidCrystal.h"
 
-//int thermoCLK = A3;
+int thermoCLK = A3;
 int thermoCS = A2;
-//int thermoDO = A4;
+int thermoDO = A4;
 
 // Initialize the Thermocouple
-AdafruitMAX31855 thermocouple(thermoCS);
+AdafruitMAX31855 thermocouple(thermoCS); //hardware mode
+//AdafruitMAX31855 thermocouple(thermoCLK,thermoCS,thermoDO);  //software mode
 // initialize the library with the numbers of the interface pins
 LiquidCrystal lcd(D2, D3, D4, D5, D6, D7);
 

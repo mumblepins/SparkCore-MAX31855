@@ -22,7 +22,7 @@ int thermoCS = A2;
 int thermoDO = A4;
 
 AdafruitMAX31855 thermocouple(thermoCS); //hardware mode
-//AdafruitMAX31855 thermocouple(thermoCLK,thermoCS,thermoD0);  //software mode
+//AdafruitMAX31855 thermocouple(thermoCLK,thermoCS,thermoDO);  //software mode
 
 void setup() {
     //init thermocouple
