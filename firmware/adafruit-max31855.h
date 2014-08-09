@@ -24,10 +24,10 @@
 
 #include "application.h"
 
-class Adafruit_MAX31855 {
+class AdafruitMAX31855 {
 public:
-    Adafruit_MAX31855(int8_t cs_pin, double calibration);
-    Adafruit_MAX31855(int8_t cs_pin);
+    AdafruitMAX31855(int8_t cs_pin, double calibration);
+    AdafruitMAX31855(int8_t cs_pin);
     int init(void);
     double readInternal(void);
     double readCelsius(bool raw = false);

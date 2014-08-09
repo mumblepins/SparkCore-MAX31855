@@ -22,11 +22,11 @@
  **************************************************/
 
 #include "math.h"
-#include "Adafruit_MAX31855.h"
+#include "adafruit-max31855.h"
 #define spiSend(b) SPI.transfer(b)
 #define spiRec() SPI.transfer(0XFF)
 
-Adafruit_MAX31855::Adafruit_MAX31855(int8_t cs_pin) {
+AdafruitMAX31855::AdafruitMAX31855(int8_t cs_pin) {
     _cs = cs_pin;
     _calibration = 0.0;
     SPI.setClockDivider(SPI_CLOCK_DIV8);
@@ -35,21 +35,21 @@ Adafruit_MAX31855::Adafruit_MAX31855(int8_t cs_pin) {
     SPI.begin(_cs);
 }
 
-Adafruit_MAX31855::Adafruit_MAX31855(int8_t cs_pin, double calibration) {
+AdafruitMAX31855::AdafruitMAX31855(int8_t cs_pin, double calibration) {
     _cs = cs_pin;
     _calibration = calibration;
     SPI.begin(_cs);
 }
 
-inline void Adafruit_MAX31855::chipSelectHigh(void) {
+inline void AdafruitMAX31855::chipSelectHigh(void) {
     digitalWrite(_cs, HIGH);
 }
 
-inline void Adafruit_MAX31855::chipSelectLow(void) {
+inline void AdafruitMAX31855::chipSelectLow(void) {
     digitalWrite(_cs, LOW);
 }
 
-int Adafruit_MAX31855::init(void) {
+int AdafruitMAX31855::init(void) {
     // init chip..  not sure if this is necessary for MAX31855
     chipSelectHigh();
     for (uint8_t i = 0; i < 10; i++) spiSend(0XFF);
@@ -78,7 +78,7 @@ int Adafruit_MAX31855::init(void) {
     chipSelectHigh();
 }
 
-double Adafruit_MAX31855::readInternal(void) {
+double AdafruitMAX31855::readInternal(void) {
     uint32_t v;
 
     v = spiread32();
@@ -96,7 +96,7 @@ double Adafruit_MAX31855::readInternal(void) {
     return internal;
 }
 
-double Adafruit_MAX31855::readCelsius(bool raw) {
+double AdafruitMAX31855::readCelsius(bool raw) {
     int32_t v;
 
     v = spiread32();
@@ -129,11 +129,11 @@ double Adafruit_MAX31855::readCelsius(bool raw) {
     return celsius;
 }
 
-uint8_t Adafruit_MAX31855::readError() {
+uint8_t AdafruitMAX31855::readError() {
     return spiread32() & 0x7;
 }
 
-double Adafruit_MAX31855::readFarenheit(void) {
+double AdafruitMAX31855::readFarenheit(void) {
     float f = readCelsius();
     f *= 9.0;
     f /= 5.0;
@@ -141,21 +141,21 @@ double Adafruit_MAX31855::readFarenheit(void) {
     return f;
 }
 
-void Adafruit_MAX31855::calibrate(void) {
+void AdafruitMAX31855::calibrate(void) {
     double thermoTemp = readCelsius(true);
     double intTemp = readInternal();
     _calibration = intTemp - thermoTemp;
 }
 
-void Adafruit_MAX31855::calibrate(double calibration) {
+void AdafruitMAX31855::calibrate(double calibration) {
     _calibration = calibration;
 }
 
-double Adafruit_MAX31855::readCalibration(void) {
+double AdafruitMAX31855::readCalibration(void) {
     return _calibration;
 }
 
-uint32_t Adafruit_MAX31855::spiread32(void) {
+uint32_t AdafruitMAX31855::spiread32(void) {
    uint32_t d = 0;
     int i;
     chipSelectLow(); // select card

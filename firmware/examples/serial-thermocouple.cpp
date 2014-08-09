@@ -15,13 +15,13 @@
  ****************************************************/
 
 #include "math.h"
-#include "Adafruit_MAX31855/Adafruit_MAX31855.h"
+#include "adafruit-max31855/adafruit-max31855.h"
 
 //int thermoCLK = A3;
 int thermoCS = A2;
 //int thermoDO = A4;
 
-Adafruit_MAX31855 thermocouple(thermoCS);
+AdafruitMAX31855 thermocouple(thermoCS);
   
 void setup() {
   // open serial terminal and press ENTER to start
