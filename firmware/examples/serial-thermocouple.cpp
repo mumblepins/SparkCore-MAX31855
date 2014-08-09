@@ -17,17 +17,17 @@
 #include "math.h"
 #include "Adafruit_MAX31855/Adafruit_MAX31855.h"
 
-int thermoCLK = A3;
+//int thermoCLK = A3;
 int thermoCS = A2;
-int thermoDO = A4;
+//int thermoDO = A4;
 
-Adafruit_MAX31855 thermocouple(thermoCLK, thermoCS, thermoDO);
+Adafruit_MAX31855 thermocouple(thermoCS);
   
 void setup() {
   // open serial terminal and press ENTER to start
   Serial.begin(9600);
   while(!Serial.available()) SPARK_WLAN_Loop();
-  
+  while(Serial.available()) Serial.read();  //flush serial data
   Serial.println("MAX31855 test");
   // wait for MAX chip to stabilize
   delay(500);
@@ -37,7 +37,8 @@ void loop() {
   // basic readout test, just print the current temp
    Serial.print("Internal Temp = ");
    Serial.println(thermocouple.readInternal());
-
+   Serial.print("Calibration Value = ");
+   Serial.println(thermocouple.readCalibration());
    double c = thermocouple.readCelsius();
    if (isnan(c)) {
      Serial.println("Something wrong with thermocouple!");
@@ -49,4 +50,7 @@ void loop() {
    //Serial.println(thermocouple.readFarenheit());
  
    delay(1000);
+   //press any key to calibrate to internal temp sensor
+   if (Serial.available()) thermocouple.calibrate();
+   while(Serial.available()) Serial.read();  //flush serial data
 }

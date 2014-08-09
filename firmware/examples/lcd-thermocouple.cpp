@@ -18,12 +18,12 @@
 #include "Adafruit_MAX31855/Adafruit_MAX31855.h"
 #include "LiquidCrystal/LiquidCrystal.h"
 
-int thermoCLK = A3;
+//int thermoCLK = A3;
 int thermoCS = A2;
-int thermoDO = A4;
+//int thermoDO = A4;
 
 // Initialize the Thermocouple
-Adafruit_MAX31855 thermocouple(thermoCLK, thermoCS, thermoDO);
+Adafruit_MAX31855 thermocouple(thermoCS);
 // initialize the library with the numbers of the interface pins
 LiquidCrystal lcd(D2, D3, D4, D5, D6, D7);
 

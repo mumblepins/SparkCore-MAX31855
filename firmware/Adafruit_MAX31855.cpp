@@ -14,108 +14,157 @@
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
+/* **********************************************
+ *  Ported to Spark initially by Technobly
+ *  Modified to hardware SPI by Mumblepins and calibration added
+ *  Mumblepins copied heavily from Technobly's SD card library,
+ *  so most credit goes to him :-)
+ **************************************************/
+
 #include "math.h"
 #include "Adafruit_MAX31855.h"
+#define spiSend(b) SPI.transfer(b)
+#define spiRec() SPI.transfer(0XFF)
 
-Adafruit_MAX31855::Adafruit_MAX31855(int8_t sclk_pin, int8_t cs_pin, int8_t miso_pin) {
-  _sclk = sclk_pin;
-  _cs = cs_pin;
-  _miso = miso_pin;
-
-  //define pin modes
-  pinMode(_cs, OUTPUT);
-  pinMode(_sclk, OUTPUT); 
-  pinMode(_miso, INPUT);
-
-  digitalWrite(_cs, HIGH);
+Adafruit_MAX31855::Adafruit_MAX31855(int8_t cs_pin) {
+    _cs = cs_pin;
+    _calibration = 0.0;
+    _spimode = 1;
+    SPI.setClockDivider(SPI_CLOCK_DIV8);
+    SPI.setDataMode(SPI_MODE0);
+    SPI.setBitOrder(MSBFIRST);
+    SPI.begin(_cs);
 }
 
+Adafruit_MAX31855::Adafruit_MAX31855(int8_t cs_pin, double calibration) {
+    _cs = cs_pin;
+    _calibration = calibration;
+    _spimode = 1;
+    SPI.begin(_cs);
+}
+
+inline void Adafruit_MAX31855::chipSelectHigh(void) {
+    digitalWrite(_cs, HIGH);
+}
+
+inline void Adafruit_MAX31855::chipSelectLow(void) {
+    digitalWrite(_cs, LOW);
+}
+
+int Adafruit_MAX31855::init(void) {
+    // init chip..  not sure if this is necessary for MAX31855
+    chipSelectHigh();
+    for (uint8_t i = 0; i < 10; i++) spiSend(0XFF);
+    chipSelectLow();
+    chipSelectHigh();
+
+    // now we need to do an initial value on the moving average. 
+    // this also confirms that thermocouple is attached and working
+    int32_t v;
+    v = spiread32();
+    if (v & 0x7) {
+        // uh oh, a serious problem!
+        return NAN;
+    }
+    if (v & 0x80000000) {
+        // Negative value, drop the lower 18 bits and explicitly extend sign bits.
+        v = 0xFFFFC000 | ((v >> 18) & 0x00003FFFF);
+    } else {
+        // Positive value, just drop the lower 18 bits.
+        v >>= 18;
+    }
+    v <<= 2; // add an extra two bits for more accuracy
+    v += 8741; //convert to Kelvin
+    _movingRawTemp = v;
+    return _movingRawTemp;
+    chipSelectHigh();
+}
 
 double Adafruit_MAX31855::readInternal(void) {
-  uint32_t v;
+    uint32_t v;
 
-  v = spiread32();
+    v = spiread32();
 
-  // ignore bottom 4 bits - they're just thermocouple data
-  v >>= 4;
+    // ignore bottom 4 bits - they're just thermocouple data
+    v >>= 4;
 
-  // pull the bottom 11 bits off
-  float internal = v & 0x7FF;
-  internal *= 0.0625; // LSB = 0.0625 degrees
-  // check sign bit!
-  if (v & 0x800) 
-    internal *= -1;
-  //Serial.print("\tInternal Temp: "); Serial.println(internal);
-  return internal;
+    // pull the bottom 11 bits off
+    float internal = v & 0x7FF;
+    internal *= 0.0625; // LSB = 0.0625 degrees
+    // check sign bit!
+    if (v & 0x800)
+        internal *= -1;
+    //Serial.print("\tInternal Temp: "); Serial.println(internal);
+    return internal;
 }
 
-double Adafruit_MAX31855::readCelsius(void) {
+double Adafruit_MAX31855::readCelsius(bool raw) {
+    int32_t v;
 
-  int32_t v;
+    v = spiread32();
 
-  v = spiread32();
+    if (v & 0x7) {
+        // uh oh, a serious problem!
+        return NAN;
+    }
 
-  //Serial.print("0x"); Serial.println(v, HEX);
+    if (v & 0x80000000) {
+        // Negative value, drop the lower 18 bits and explicitly extend sign bits.
+        v = 0xFFFFC000 | ((v >> 18) & 0x00003FFFF);
+    } else {
+        // Positive value, just drop the lower 18 bits.
+        v >>= 18;
+    }
 
-  /*
-  float internal = (v >> 4) & 0x7FF;
-  internal *= 0.0625;
-  if ((v >> 4) & 0x800) 
-    internal *= -1;
-  Serial.print("\tInternal Temp: "); Serial.println(internal);
-  */
+    v <<= 2; // add an extra two bits for more accuracy
+    v += 8741; //convert to Kelvin
 
-  if (v & 0x7) {
-    // uh oh, a serious problem!
-    return NAN;
-  }
+    //_movingRawTemp = ((_movingRawTemp * 7)+(uint32_t) v) >> 3;  //8-sample moving average
+    _movingRawTemp = ((_movingRawTemp * 3)+(uint32_t) v) >> 2; //4-sample moving average
+    //_movingRawTemp = v;  //no moving average
 
-  // get rid of internal temp data, and any fault bits
-  v >>= 18;
-  //Serial.println(v, HEX);
-  
-  double centigrade = v;
+    double celsius = (double) (_movingRawTemp - 8741) / 16.0;
 
-  // LSB = 0.25 degrees C
-  centigrade *= 0.25;
-  return centigrade;
+    if (!raw)
+        celsius += _calibration;
+
+    return celsius;
 }
 
 uint8_t Adafruit_MAX31855::readError() {
-  return spiread32() & 0x7;
+    return spiread32() & 0x7;
 }
 
 double Adafruit_MAX31855::readFarenheit(void) {
-  float f = readCelsius();
-  f *= 9.0;
-  f /= 5.0;
-  f += 32;
-  return f;
+    float f = readCelsius();
+    f *= 9.0;
+    f /= 5.0;
+    f += 32;
+    return f;
 }
 
-uint32_t Adafruit_MAX31855::spiread32(void) { 
-  int i;
-  uint32_t d = 0;
+void Adafruit_MAX31855::calibrate(void) {
+    double thermoTemp = readCelsius(true);
+    double intTemp = readInternal();
+    _calibration = intTemp - thermoTemp;
+}
 
-  digitalWrite(_sclk, LOW);
-  delay(1);
-  digitalWrite(_cs, LOW);
-  delay(1);
+void Adafruit_MAX31855::calibrate(double calibration) {
+    _calibration = calibration;
+}
 
-  for (i=31; i>=0; i--)
-  {
-    digitalWrite(_sclk, LOW);
-    delay(1);
-    d <<= 1;
-    if (digitalRead(_miso)) {
-      d |= 1;
+double Adafruit_MAX31855::readCalibration(void) {
+    return _calibration;
+}
+
+uint32_t Adafruit_MAX31855::spiread32(void) {
+   uint32_t d = 0;
+    int i;
+    chipSelectLow(); // select card
+    for (i = 0; i < 4; i++) { //transfer 4 bytes
+        d <<= 8;
+        d |= spiRec();
     }
-
-    digitalWrite(_sclk, HIGH);
-    delay(1);
-  }
-
-  digitalWrite(_cs, HIGH);
-  //Serial.println(d, HEX);
-  return d;
+    chipSelectHigh();
+    return d;
 }
