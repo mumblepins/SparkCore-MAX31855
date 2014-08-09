@@ -23,8 +23,6 @@
 
 #include "math.h"
 #include "adafruit-max31855.h"
-#define spiSend(b) SPI.transfer(b)
-#define spiRec() SPI.transfer(0XFF)
 
 AdafruitMAX31855::AdafruitMAX31855(int8_t sclk_pin, int8_t cs_pin, int8_t miso_pin) {
     //software mode without calibration value
@@ -184,7 +182,7 @@ uint32_t AdafruitMAX31855::spiread32(void) {
         chipSelectLow(); // select card
         for (i = 0; i < 4; i++) { //transfer 4 bytes
             d <<= 8;
-            d |= spiRec();
+            d |= SPI.transfer(0XFF);
         }
         chipSelectHigh();
     } else {  // bit-banging
